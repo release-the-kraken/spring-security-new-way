@@ -1,5 +1,6 @@
 package com.rtk.springsecuritytutorial.configs;
 
+import com.rtk.springsecuritytutorial.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,9 +20,9 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Component
 @RequiredArgsConstructor
-public class JWTAuthFilter extends OncePerRequestFilter {
+public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
 
     @Override
@@ -43,7 +44,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         userEmail = jwtUtils.extractUsername(jwtToken);
 
         if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+            UserDetails userDetails = userRepository.findUserByEmail(userEmail);
 
             if(jwtUtils.isTokenValid(jwtToken, userDetails)){
                 UsernamePasswordAuthenticationToken authToken =

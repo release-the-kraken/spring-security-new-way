@@ -1,18 +1,26 @@
 package com.rtk.springsecuritytutorial.configs;
 
+import com.rtk.springsecuritytutorial.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -26,17 +34,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JWTAuthFilter jwtAuthFilter;
+    private final JwtAuthFilter jwtAuthFilter;
 
-    private final static List<UserDetails> APP_USERS = Arrays.asList(
-            new User("admin@email.com",
-                    "admin",
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN"))),
-            new User("user@email.com",
-                    "user",
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")))
-
-    );
+    private final UserRepository userRepository;
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -44,24 +44,47 @@ public class SecurityConfig {
 
         log.info("Custom filter chain working");
 
-        httpSecurity.authorizeHttpRequests()
-                .anyRequest()
-                .authenticated()
+        httpSecurity
+                .cors()
                 .and()
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf().disable()
+                .authorizeHttpRequests()
+                    .requestMatchers("/api/v1/auth/**").permitAll()
+                    .anyRequest()
+                    .authenticated()
+                .and()
+                    .sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                    .authenticationProvider(authenticationProvider())
+                    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
 
     @Bean
+    public AuthenticationProvider authenticationProvider() {
+        final DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService());
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        return authenticationProvider;
+    }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public  PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+        return NoOpPasswordEncoder.getInstance();
+    }
+    @Bean
     public UserDetailsService userDetailsService(){
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-                return APP_USERS.stream()
-                        .filter(u -> u.getUsername().equals(email))
-                        .findFirst()
-                        .orElseThrow(() -> new UsernameNotFoundException("User %s not found".formatted(email)));
+                return userRepository.findUserByEmail(email);
             }
         };
     }
