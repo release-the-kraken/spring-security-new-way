@@ -1,4 +1,4 @@
-package com.rtk.springsecuritytutorial.dto;
+package com.rtk.springsecuritytutorial.model.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class AuthenticationRequest {
-    private String email;
+    private String login;
     private String password;
 }

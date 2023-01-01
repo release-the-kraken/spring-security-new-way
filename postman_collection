@@ -1,0 +1,86 @@
+{
+	"info": {
+		"_postman_id": "cbdb5eb8-a5ae-40a3-a48f-8bd11a8e2df5",
+		"name": "Spring Boot 3.0 security",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22816706"
+	},
+	"item": [
+		{
+			"name": "authenticate user (get token)",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"login\":\"His Highness The Admin\",\r\n    \"password\":\"admin\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/auth/authenticate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"authenticate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get message with authentication",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJIaXMgSGlnaG5lc3MgVGhlIEFkbWluIiwiZXhwIjoxNjcyNjgwOTk1LCJpYXQiOjE2NzI1OTQ1OTUsImF1dGhvcml0aWVzIjpbIlVTRVIiLCJBRE1JTiJdfQ.npz0Hn5dQc1Fky6GQQSQVbpQdQVUEelWVbS9BhecR3s",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/v1/greetings",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"greetings"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

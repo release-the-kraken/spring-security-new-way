@@ -1,14 +1,13 @@
 package com.rtk.springsecuritytutorial.controllers;
 
 import com.rtk.springsecuritytutorial.configs.JwtUtils;
-import com.rtk.springsecuritytutorial.dto.AuthenticationRequest;
+import com.rtk.springsecuritytutorial.model.dto.AuthenticationRequest;
 import com.rtk.springsecuritytutorial.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,9 +24,10 @@ public class AuthController {
     @PostMapping("/authenticate")
     public ResponseEntity<String> authenticate(@RequestBody AuthenticationRequest request){
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.getLogin(), request.getPassword())
         );
-        final UserDetails user = userRepository.findUserByEmail(request.getEmail());
+        final UserDetails user = userRepository.findByUsername(request.getLogin())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid username."));
         if(user != null){
             return ResponseEntity.ok(jwtUtils.generateToken(user));
         }
