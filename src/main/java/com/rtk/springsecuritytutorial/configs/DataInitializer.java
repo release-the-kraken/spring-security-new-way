@@ -24,11 +24,12 @@ public class DataInitializer {
                     UserEntity.builder()
                             .username(ADMIN_NAME)
                             .password(passwordEncoder.encode("admin"))
-                            .role(UserRoles.ADMIN.getAuthority())
+                            .role(UserRoles.ADMIN)
                             .email("admin@email.com")
                             .accountNonExpired(true)
                             .accountNonLocked(true)
                             .credentialsNonExpired(true)
+                            .enabled(true)
                             .build()
             );
         }
